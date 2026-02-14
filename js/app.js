@@ -1,4 +1,3 @@
-// Defines base dimensions (in meters) and colors for each furniture type
 const FURNITURE_DATABASE = {
     table: { width: 1.2, height: 0.8, depth: 0.8, color: '#FF5733' },
     bed: { width: 1.4, height: 0.5, depth: 1.9, color: '#28B463' },
@@ -26,10 +25,9 @@ AFRAME.registerComponent('camera-zoom-fix', {
     applyVideoStyles: function () {
         try {
             const videoElement = document.getElementById('arjs-video');
-            if (!videoElement) {
-                throw new Error('AR.js video element not found.');
+            if (videoElement) {
+                videoElement.style.objectFit = 'cover';
             }
-            videoElement.style.objectFit = 'cover';
         } catch (error) {
             console.error('Failed to apply video styles: ', error.message);
         }
@@ -37,6 +35,57 @@ AFRAME.registerComponent('camera-zoom-fix', {
 
     remove: function () {
         this.el.removeEventListener('camera-init', this.handleCameraInitialization);
+    }
+});
+
+AFRAME.registerComponent('placement-lock', {
+    init: function () {
+        this.isLocked = false;
+        this.sceneReference = document.querySelector('a-scene');
+        this.markerReference = document.getElementById('main-marker');
+        this.lockButton = document.getElementById('lock-btn');
+
+        this.handleLockToggle = this.executeLockLogic.bind(this);
+        this.lockButton.addEventListener('click', this.handleLockToggle);
+    },
+
+    executeLockLogic: function () {
+        try {
+            if (!this.isLocked) {
+                this.lockObjectToWorld();
+            } else {
+                this.unlockObjectToMarker();
+            }
+        } catch (error) {
+            console.error('Failed to execute lock mechanism: ', error.message);
+        }
+    },
+
+    lockObjectToWorld: function () {
+        const worldPosition = new THREE.Vector3();
+        const worldQuaternion = new THREE.Quaternion();
+        
+        this.el.object3D.getWorldPosition(worldPosition);
+        this.el.object3D.getWorldQuaternion(worldQuaternion);
+
+        this.sceneReference.appendChild(this.el);
+
+        this.el.object3D.position.copy(worldPosition);
+        this.el.object3D.quaternion.copy(worldQuaternion);
+
+        this.isLocked = true;
+        this.lockButton.innerText = 'Unlock Placement';
+        this.lockButton.classList.add('locked');
+    },
+
+    unlockObjectToMarker: function () {
+        this.markerReference.appendChild(this.el);
+        this.el.object3D.position.set(0, 0, 0);
+        this.el.object3D.rotation.set(0, 0, 0);
+
+        this.isLocked = false;
+        this.lockButton.innerText = 'Lock Placement';
+        this.lockButton.classList.remove('locked');
     }
 });
 
@@ -63,22 +112,17 @@ AFRAME.registerComponent('mindspace-controller', {
             rotZ: document.getElementById('rot-z'),
             measurements: document.getElementById('measurement-display')
         };
-
-        if (!this.uiElements.selector || !this.uiElements.measurements) {
-            throw new Error('Critical UI elements are missing from the DOM.');
-        }
     },
 
     attachEventListeners: function () {
         this.uiElements.selector.addEventListener('change', this.handleFurnitureChange.bind(this));
         
-        const scaleInputs = [this.uiElements.scaleX, this.uiElements.scaleY, this.uiElements.scaleZ];
-        scaleInputs.forEach(input => {
-            input.addEventListener('input', this.handleTransformChange.bind(this));
-        });
-
-        const rotInputs = [this.uiElements.rotX, this.uiElements.rotY, this.uiElements.rotZ];
-        rotInputs.forEach(input => {
+        const inputs = [
+            this.uiElements.scaleX, this.uiElements.scaleY, this.uiElements.scaleZ,
+            this.uiElements.rotX, this.uiElements.rotY, this.uiElements.rotZ
+        ];
+        
+        inputs.forEach(input => {
             input.addEventListener('input', this.handleTransformChange.bind(this));
         });
     },
@@ -105,10 +149,6 @@ AFRAME.registerComponent('mindspace-controller', {
         const selectedType = this.uiElements.selector.value;
         const furnitureData = FURNITURE_DATABASE[selectedType];
 
-        if (!furnitureData) {
-            throw new Error('Invalid furniture type selected.');
-        }
-
         this.el.setAttribute('geometry', {
             primitive: 'box',
             width: furnitureData.width,
@@ -122,7 +162,7 @@ AFRAME.registerComponent('mindspace-controller', {
         });
 
         const yOffset = furnitureData.height / 2;
-        this.el.setAttribute('position', '0 ' + yOffset + ' 0');
+        this.el.object3D.position.set(0, yOffset, 0);
     },
 
     updateModelTransform: function () {
@@ -151,8 +191,6 @@ AFRAME.registerComponent('mindspace-controller', {
         const finalDepth = (baseData.depth * parseFloat(this.uiElements.scaleZ.value)).toFixed(2);
 
         this.uiElements.measurements.innerText = 
-            'Width: ' + finalWidth + 'm | ' +
-            'Height: ' + finalHeight + 'm | ' +
-            'Depth: ' + finalDepth + 'm';
+            'Width: ' + finalWidth + 'm | Height: ' + finalHeight + 'm | Depth: ' + finalDepth + 'm';
     }
 });

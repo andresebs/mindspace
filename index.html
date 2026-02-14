@@ -14,35 +14,40 @@
 <body style="margin: 0px; overflow: hidden;">
 
     <div id="mindspace-ui" class="ui-container">
-        <h1 class="app-title">Mindspace</h1>
+        <div class="header-container">
+            <h1 class="app-title">Mindspace</h1>
+            <button id="lock-btn" class="action-btn">Lock Placement</button>
+        </div>
         
-        <div class="control-group">
-            <label for="furniture-selector">Select Furniture:</label>
-            <select id="furniture-selector">
-                <option value="table">Table</option>
-                <option value="bed">Bed</option>
-                <option value="wardrobe">Wardrobe</option>
-                <option value="chair">Chair</option>
-            </select>
-        </div>
+        <div class="scrollable-content">
+            <div class="control-group">
+                <label for="furniture-selector">Select Furniture:</label>
+                <select id="furniture-selector">
+                    <option value="table">Table</option>
+                    <option value="bed">Bed</option>
+                    <option value="wardrobe">Wardrobe</option>
+                    <option value="chair">Chair</option>
+                </select>
+            </div>
 
-        <div class="control-group">
-            <label>Scale (Multiplier)</label>
-            <div>X: <input type="range" id="scale-x" min="0.5" max="2.5" step="0.1" value="1.0"></div>
-            <div>Y: <input type="range" id="scale-y" min="0.5" max="2.5" step="0.1" value="1.0"></div>
-            <div>Z: <input type="range" id="scale-z" min="0.5" max="2.5" step="0.1" value="1.0"></div>
-        </div>
+            <div class="control-group">
+                <label>Scale (Multiplier)</label>
+                <div class="slider-row"><span>X:</span> <input type="range" id="scale-x" min="0.5" max="2.5" step="0.1" value="1.0"></div>
+                <div class="slider-row"><span>Y:</span> <input type="range" id="scale-y" min="0.5" max="2.5" step="0.1" value="1.0"></div>
+                <div class="slider-row"><span>Z:</span> <input type="range" id="scale-z" min="0.5" max="2.5" step="0.1" value="1.0"></div>
+            </div>
 
-        <div class="control-group">
-            <label>Rotation (Degrees)</label>
-            <div>X: <input type="range" id="rot-x" min="0" max="360" step="1" value="0"></div>
-            <div>Y: <input type="range" id="rot-y" min="0" max="360" step="1" value="0"></div>
-            <div>Z: <input type="range" id="rot-z" min="0" max="360" step="1" value="0"></div>
-        </div>
+            <div class="control-group">
+                <label>Rotation (Degrees)</label>
+                <div class="slider-row"><span>X:</span> <input type="range" id="rot-x" min="0" max="360" step="1" value="0"></div>
+                <div class="slider-row"><span>Y:</span> <input type="range" id="rot-y" min="0" max="360" step="1" value="0"></div>
+                <div class="slider-row"><span>Z:</span> <input type="range" id="rot-z" min="0" max="360" step="1" value="0"></div>
+            </div>
 
-        <div class="measurement-panel">
-            <h3>Real-world Size</h3>
-            <p id="measurement-display">Width: -- m | Height: -- m | Depth: -- m</p>
+            <div class="measurement-panel">
+                <h3>Real-world Size</h3>
+                <p id="measurement-display">Width: -- m | Height: -- m | Depth: -- m</p>
+            </div>
         </div>
     </div>
 
@@ -50,8 +55,10 @@
              arjs="sourceType: webcam; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;" 
              camera-zoom-fix>
              
-        <a-marker preset="hiro">
-            <a-entity id="furniture-model" mindspace-controller></a-entity>
+        <a-marker preset="hiro" id="main-marker" smooth="true">
+            <a-entity id="furniture-wrapper" placement-lock>
+                <a-entity id="furniture-model" mindspace-controller></a-entity>
+            </a-entity>
         </a-marker>
 
         <a-entity camera></a-entity>
