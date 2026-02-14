@@ -7,190 +7,162 @@ const FURNITURE_DATABASE = {
 
 AFRAME.registerComponent('camera-zoom-fix', {
     init: function () {
-        this.handleCameraInitialization = this.forceResizeCalculation.bind(this);
-        this.el.addEventListener('camera-init', this.handleCameraInitialization);
+        this.onCameraInit = this.triggerResize.bind(this);
+        this.el.addEventListener('camera-init', this.onCameraInit);
     },
-
-    forceResizeCalculation: function () {
+    triggerResize: function () {
         try {
-            setTimeout(function () {
-                window.dispatchEvent(new Event('resize'));
-            }, 500);
-            this.applyVideoStyles();
-        } catch (error) {
-            console.error('Error triggering camera resize fix: ', error.message);
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 500);
+            const video = document.getElementById('arjs-video');
+            if (video) video.style.objectFit = 'cover';
+        } catch (e) {
+            console.error('Camera fix error:', e.message);
         }
     },
-
-    applyVideoStyles: function () {
-        try {
-            const videoElement = document.getElementById('arjs-video');
-            if (videoElement) {
-                videoElement.style.objectFit = 'cover';
-            }
-        } catch (error) {
-            console.error('Failed to apply video styles: ', error.message);
-        }
-    },
-
     remove: function () {
-        this.el.removeEventListener('camera-init', this.handleCameraInitialization);
+        this.el.removeEventListener('camera-init', this.onCameraInit);
+    }
+});
+
+AFRAME.registerComponent('ui-interaction-handler', {
+    init: function () {
+        this.uiContainer = document.getElementById('mindspace-ui');
+        this.toggleBtn = document.getElementById('toggle-menu-btn');
+        
+        if (this.uiContainer && this.toggleBtn) {
+            this.toggleBtn.addEventListener('click', () => {
+                this.toggleMenu();
+            });
+        }
+    },
+    toggleMenu: function () {
+        if (this.uiContainer.classList.contains('collapsed')) {
+            this.uiContainer.classList.remove('collapsed');
+            this.uiContainer.classList.add('expanded');
+        } else {
+            this.uiContainer.classList.remove('expanded');
+            this.uiContainer.classList.add('collapsed');
+        }
     }
 });
 
 AFRAME.registerComponent('placement-lock', {
     init: function () {
         this.isLocked = false;
-        this.sceneReference = document.querySelector('a-scene');
-        this.markerReference = document.getElementById('main-marker');
-        this.lockButton = document.getElementById('lock-btn');
-
-        this.handleLockToggle = this.executeLockLogic.bind(this);
-        this.lockButton.addEventListener('click', this.handleLockToggle);
+        this.sceneEl = document.querySelector('a-scene');
+        this.markerEl = document.getElementById('main-marker');
+        this.lockBtn = document.getElementById('lock-btn');
+        
+        this.onToggle = this.toggleLock.bind(this);
+        this.lockBtn.addEventListener('click', this.onToggle);
     },
 
-    executeLockLogic: function () {
+    toggleLock: function () {
         try {
-            if (!this.isLocked) {
-                this.lockObjectToWorld();
+            if (this.isLocked) {
+                this.unlock();
             } else {
-                this.unlockObjectToMarker();
+                this.lock();
             }
         } catch (error) {
-            console.error('Failed to execute lock mechanism: ', error.message);
+            console.error('Lock toggle error:', error.message);
         }
     },
 
-    lockObjectToWorld: function () {
-        const worldPosition = new THREE.Vector3();
-        const worldQuaternion = new THREE.Quaternion();
-        
-        this.el.object3D.getWorldPosition(worldPosition);
-        this.el.object3D.getWorldQuaternion(worldQuaternion);
+    lock: function () {
+        if (!this.el.object3D || !this.sceneEl.object3D) return;
 
-        this.sceneReference.appendChild(this.el);
-
-        this.el.object3D.position.copy(worldPosition);
-        this.el.object3D.quaternion.copy(worldQuaternion);
+ 
+        this.sceneEl.object3D.attach(this.el.object3D);
 
         this.isLocked = true;
-        this.lockButton.innerText = 'Unlock Placement';
-        this.lockButton.classList.add('locked');
+        this.lockBtn.innerText = 'Unlock';
+        this.lockBtn.classList.add('locked');
     },
 
-    unlockObjectToMarker: function () {
-        this.markerReference.appendChild(this.el);
+    unlock: function () {
+        if (!this.el.object3D || !this.markerEl.object3D) return;
+
+        this.markerEl.object3D.attach(this.el.object3D);
+        
         this.el.object3D.position.set(0, 0, 0);
         this.el.object3D.rotation.set(0, 0, 0);
+        
+ 
 
         this.isLocked = false;
-        this.lockButton.innerText = 'Lock Placement';
-        this.lockButton.classList.remove('locked');
+        this.lockBtn.innerText = 'Lock';
+        this.lockBtn.classList.remove('locked');
     }
 });
 
 AFRAME.registerComponent('mindspace-controller', {
     init: function () {
         try {
-            this.bindDOMReferences();
-            this.attachEventListeners();
-            this.updateModelGeometry();
-            this.updateModelTransform();
-        } catch (error) {
-            console.error('Failed to initialize mindspace-controller: ', error.message);
+            this.ui = {
+                selector: document.getElementById('furniture-selector'),
+                scaleX: document.getElementById('scale-x'),
+                scaleY: document.getElementById('scale-y'),
+                scaleZ: document.getElementById('scale-z'),
+                rotY: document.getElementById('rot-y'),
+                display: document.getElementById('measurement-display')
+            };
+            
+            this.bindEvents();
+            this.updateShape();
+        } catch (e) {
+            console.error('Controller init failed:', e.message);
         }
     },
 
-    bindDOMReferences: function () {
-        this.uiElements = {
-            selector: document.getElementById('furniture-selector'),
-            scaleX: document.getElementById('scale-x'),
-            scaleY: document.getElementById('scale-y'),
-            scaleZ: document.getElementById('scale-z'),
-            rotX: document.getElementById('rot-x'),
-            rotY: document.getElementById('rot-y'),
-            rotZ: document.getElementById('rot-z'),
-            measurements: document.getElementById('measurement-display')
-        };
-    },
-
-    attachEventListeners: function () {
-        this.uiElements.selector.addEventListener('change', this.handleFurnitureChange.bind(this));
+    bindEvents: function () {
+        this.ui.selector.addEventListener('change', () => { 
+            this.updateShape(); 
+            this.updateText(); 
+        });
         
-        const inputs = [
-            this.uiElements.scaleX, this.uiElements.scaleY, this.uiElements.scaleZ,
-            this.uiElements.rotX, this.uiElements.rotY, this.uiElements.rotZ
-        ];
-        
-        inputs.forEach(input => {
-            input.addEventListener('input', this.handleTransformChange.bind(this));
+        [this.ui.scaleX, this.ui.scaleY, this.ui.scaleZ, this.ui.rotY].forEach(el => {
+            el.addEventListener('input', () => { 
+                this.updateTransform(); 
+                this.updateText(); 
+            });
         });
     },
 
-    handleFurnitureChange: function () {
-        try {
-            this.updateModelGeometry();
-            this.updateCalculatedMeasurements();
-        } catch (error) {
-            console.error('Error changing furniture type: ', error.message);
-        }
-    },
-
-    handleTransformChange: function () {
-        try {
-            this.updateModelTransform();
-            this.updateCalculatedMeasurements();
-        } catch (error) {
-            console.error('Error updating transformation: ', error.message);
-        }
-    },
-
-    updateModelGeometry: function () {
-        const selectedType = this.uiElements.selector.value;
-        const furnitureData = FURNITURE_DATABASE[selectedType];
-
+    updateShape: function () {
+        const type = this.ui.selector.value;
+        const data = FURNITURE_DATABASE[type];
+        
         this.el.setAttribute('geometry', {
             primitive: 'box',
-            width: furnitureData.width,
-            height: furnitureData.height,
-            depth: furnitureData.depth
+            width: data.width,
+            height: data.height,
+            depth: data.depth
         });
-
-        this.el.setAttribute('material', {
-            color: furnitureData.color,
-            opacity: 0.8
-        });
-
-        const yOffset = furnitureData.height / 2;
-        this.el.object3D.position.set(0, yOffset, 0);
+        
+        this.el.setAttribute('material', { color: data.color, opacity: 0.9 });
+        
+        this.el.object3D.position.y = data.height / 2;
     },
 
-    updateModelTransform: function () {
-        const scaleValues = {
-            x: parseFloat(this.uiElements.scaleX.value),
-            y: parseFloat(this.uiElements.scaleY.value),
-            z: parseFloat(this.uiElements.scaleZ.value)
-        };
+    updateTransform: function () {
+        const sx = parseFloat(this.ui.scaleX.value);
+        const sy = parseFloat(this.ui.scaleY.value);
+        const sz = parseFloat(this.ui.scaleZ.value);
+        const ry = parseFloat(this.ui.rotY.value);
 
-        const rotationValues = {
-            x: parseFloat(this.uiElements.rotX.value),
-            y: parseFloat(this.uiElements.rotY.value),
-            z: parseFloat(this.uiElements.rotZ.value)
-        };
-
-        this.el.setAttribute('scale', scaleValues);
-        this.el.setAttribute('rotation', rotationValues);
+        this.el.object3D.scale.set(sx, sy, sz);
+        this.el.object3D.rotation.y = THREE.Math.degToRad(ry);
     },
 
-    updateCalculatedMeasurements: function () {
-        const selectedType = this.uiElements.selector.value;
-        const baseData = FURNITURE_DATABASE[selectedType];
+    updateText: function () {
+        const type = this.ui.selector.value;
+        const data = FURNITURE_DATABASE[type];
+        
+        const w = (data.width * this.ui.scaleX.value).toFixed(2);
+        const h = (data.height * this.ui.scaleY.value).toFixed(2);
+        const d = (data.depth * this.ui.scaleZ.value).toFixed(2);
 
-        const finalWidth = (baseData.width * parseFloat(this.uiElements.scaleX.value)).toFixed(2);
-        const finalHeight = (baseData.height * parseFloat(this.uiElements.scaleY.value)).toFixed(2);
-        const finalDepth = (baseData.depth * parseFloat(this.uiElements.scaleZ.value)).toFixed(2);
-
-        this.uiElements.measurements.innerText = 
-            'Width: ' + finalWidth + 'm | Height: ' + finalHeight + 'm | Depth: ' + finalDepth + 'm';
+        this.ui.display.innerText = `W: ${w}m | H: ${h}m | D: ${d}m`;
     }
 });

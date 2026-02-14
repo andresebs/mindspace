@@ -13,15 +13,18 @@
 </head>
 <body style="margin: 0px; overflow: hidden;">
 
-    <div id="mindspace-ui" class="ui-container">
-        <div class="header-container">
+    <div id="mindspace-ui" class="ui-container collapsed">
+        <div class="ui-header">
             <h1 class="app-title">Mindspace</h1>
-            <button id="lock-btn" class="action-btn">Lock Placement</button>
+            <div class="header-buttons">
+                <button id="lock-btn" class="action-btn">Lock</button>
+                <button id="toggle-menu-btn" class="icon-btn">⚙️</button>
+            </div>
         </div>
         
-        <div class="scrollable-content">
+        <div id="ui-content" class="ui-content">
             <div class="control-group">
-                <label for="furniture-selector">Select Furniture:</label>
+                <label for="furniture-selector">Item:</label>
                 <select id="furniture-selector">
                     <option value="table">Table</option>
                     <option value="bed">Bed</option>
@@ -31,34 +34,34 @@
             </div>
 
             <div class="control-group">
-                <label>Scale (Multiplier)</label>
+                <label>Scale</label>
                 <div class="slider-row"><span>X:</span> <input type="range" id="scale-x" min="0.5" max="2.5" step="0.1" value="1.0"></div>
                 <div class="slider-row"><span>Y:</span> <input type="range" id="scale-y" min="0.5" max="2.5" step="0.1" value="1.0"></div>
                 <div class="slider-row"><span>Z:</span> <input type="range" id="scale-z" min="0.5" max="2.5" step="0.1" value="1.0"></div>
             </div>
 
             <div class="control-group">
-                <label>Rotation (Degrees)</label>
-                <div class="slider-row"><span>X:</span> <input type="range" id="rot-x" min="0" max="360" step="1" value="0"></div>
-                <div class="slider-row"><span>Y:</span> <input type="range" id="rot-y" min="0" max="360" step="1" value="0"></div>
-                <div class="slider-row"><span>Z:</span> <input type="range" id="rot-z" min="0" max="360" step="1" value="0"></div>
+                <label>Rotation</label>
+                <div class="slider-row"><span>Y:</span> <input type="range" id="rot-y" min="0" max="360" step="5" value="0"></div>
             </div>
 
             <div class="measurement-panel">
-                <h3>Real-world Size</h3>
-                <p id="measurement-display">Width: -- m | Height: -- m | Depth: -- m</p>
+                <p id="measurement-display">W: - | H: - | D: -</p>
             </div>
         </div>
     </div>
 
     <a-scene embedded 
-             arjs="sourceType: webcam; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;" 
+             arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;" 
              vr-mode-ui="enabled: false"
-             camera-zoom-fix>
+             camera-zoom-fix
+             ui-interaction-handler>
              
-        <a-marker preset="hiro" id="main-marker" smooth="true">
-            <a-entity id="furniture-wrapper" placement-lock>
-                <a-entity id="furniture-model" mindspace-controller></a-entity>
+        <a-marker preset="hiro" id="main-marker">
+            <a-entity id="scaler-container" scale="0.1 0.1 0.1">
+                <a-entity id="furniture-wrapper" placement-lock>
+                    <a-entity id="furniture-model" mindspace-controller></a-entity>
+                </a-entity>
             </a-entity>
         </a-marker>
 
