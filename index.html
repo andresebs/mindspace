@@ -2,46 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mindspace</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>Mindspace AR</title>
+    
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="js/components.js"></script>
+    
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/app.js"></script>
 </head>
 <body style="margin: 0px; overflow: hidden;">
 
-    <a-scene embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; matrixCodeType: 3x3; debugUIEnabled: false;">
+    <div id="mindspace-ui" class="ui-container">
+        <h1 class="app-title">Mindspace</h1>
+        
+        <div class="control-group">
+            <label for="furniture-selector">Select Furniture:</label>
+            <select id="furniture-selector">
+                <option value="table">Table</option>
+                <option value="bed">Bed</option>
+                <option value="wardrobe">Wardrobe</option>
+                <option value="chair">Chair</option>
+            </select>
+        </div>
 
-        <a-marker preset="kanji">
-            <a-box position="0 0.4 0" 
-                   width="1.2" height="0.8" depth="0.8" 
-                   material="color: #FF5733; opacity: 0.7;"
-                   dimension-display="itemName: Table; width: 1.2; height: 0.8; depth: 0.8;">
-            </a-box>
-        </a-marker>
+        <div class="control-group">
+            <label>Scale (Multiplier)</label>
+            <div>X: <input type="range" id="scale-x" min="0.5" max="2.5" step="0.1" value="1.0"></div>
+            <div>Y: <input type="range" id="scale-y" min="0.5" max="2.5" step="0.1" value="1.0"></div>
+            <div>Z: <input type="range" id="scale-z" min="0.5" max="2.5" step="0.1" value="1.0"></div>
+        </div>
 
+        <div class="control-group">
+            <label>Rotation (Degrees)</label>
+            <div>X: <input type="range" id="rot-x" min="0" max="360" step="1" value="0"></div>
+            <div>Y: <input type="range" id="rot-y" min="0" max="360" step="1" value="0"></div>
+            <div>Z: <input type="range" id="rot-z" min="0" max="360" step="1" value="0"></div>
+        </div>
+
+        <div class="measurement-panel">
+            <h3>Real-world Size</h3>
+            <p id="measurement-display">Width: -- m | Height: -- m | Depth: -- m</p>
+        </div>
+    </div>
+
+    <a-scene embedded 
+             arjs="sourceType: webcam; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;" 
+             camera-zoom-fix>
+             
         <a-marker preset="hiro">
-            <a-box position="0 0.25 0" 
-                   width="1.4" height="0.5" depth="1.9" 
-                   material="color: #28B463; opacity: 0.7;"
-                   dimension-display="itemName: Bed; width: 1.4; height: 0.5; depth: 1.9;">
-            </a-box>
-        </a-marker>
-
-        <a-marker type="barcode" value="5">
-            <a-box position="0 0.5 0" 
-                   width="0.5" height="1.0" depth="0.5" 
-                   material="color: #3498DB; opacity: 0.7;"
-                   dimension-display="itemName: Chair; width: 0.5; height: 1.0; depth: 0.5;">
-            </a-box>
-        </a-marker>
-
-        <a-marker type="barcode" value="6">
-            <a-box position="0 1.0 0" 
-                   width="1.0" height="2.0" depth="0.6" 
-                   material="color: #F1C40F; opacity: 0.7;"
-                   dimension-display="itemName: Wardrobe; width: 1.0; height: 2.0; depth: 0.6;">
-            </a-box>
+            <a-entity id="furniture-model" mindspace-controller></a-entity>
         </a-marker>
 
         <a-entity camera></a-entity>
