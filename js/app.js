@@ -1,8 +1,8 @@
 const FURNITURE_DATABASE = {
-    table: { renderType: 'primitive', width: 1.2, height: 0.8, depth: 0.8, color: '#FF5733' },
-    bed: { renderType: 'primitive', width: 1.4, height: 0.5, depth: 1.9, color: '#28B463' },
-    wardrobe: { renderType: 'model', modelId: '#model-cupboard', width: 1.0, height: 2.0, depth: 0.6 },
-    chair: { renderType: 'primitive', width: 0.5, height: 1.0, depth: 0.5, color: '#3498DB' }
+    table: { renderType: 'primitive', width: 1.2, height: 0.8, depth: 0.8, color: '#FF5733', baseScale: 1.0 },
+    bed: { renderType: 'primitive', width: 1.4, height: 0.5, depth: 1.9, color: '#28B463', baseScale: 1.0 },
+    wardrobe: { renderType: 'model', modelId: '#model-cupboard', width: 1.0, height: 2.0, depth: 0.6, baseScale: 0.3 },
+    chair: { renderType: 'primitive', width: 0.5, height: 1.0, depth: 0.5, color: '#3498DB', baseScale: 1.0 }
 };
 
 AFRAME.registerComponent('camera-zoom-fix', {
@@ -157,19 +157,25 @@ AFRAME.registerComponent('mindspace-controller', {
                 
                 this.el.setAttribute('gltf-model', data.modelId);
                 
-
                 this.el.object3D.position.y = 0;
             }
+            
+            this.updateTransform();
+            
         } catch (error) {
             console.error('Failed to update shape:', error.message);
         }
     },
     updateTransform: function () {
         try {
+            const type = this.ui.selector.value;
+            const data = FURNITURE_DATABASE[type];
+            const baseMultiplier = data.baseScale || 1.0;
+
             const scaleValues = {
-                x: parseFloat(this.ui.scaleX.value),
-                y: parseFloat(this.ui.scaleY.value),
-                z: parseFloat(this.ui.scaleZ.value)
+                x: parseFloat(this.ui.scaleX.value) * baseMultiplier,
+                y: parseFloat(this.ui.scaleY.value) * baseMultiplier,
+                z: parseFloat(this.ui.scaleZ.value) * baseMultiplier
             };
 
             const rotationValues = {
