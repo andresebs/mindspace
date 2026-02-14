@@ -28,7 +28,7 @@
                 <select id="furniture-selector">
                     <option value="table">Table</option>
                     <option value="bed">Bed</option>
-                    <option value="wardrobe">Wardrobe</option>
+                    <option value="wardrobe">Wardrobe (3D)</option>
                     <option value="chair">Chair</option>
                 </select>
             </div>
@@ -59,6 +59,10 @@
              camera-zoom-fix
              ui-interaction-handler>
              
+        <a-assets>
+            <a-asset-item id="model-cupboard" src="assets/cupboard.glb"></a-asset-item>
+        </a-assets>
+
         <a-marker preset="hiro" id="main-marker">
             <a-entity id="scaler-container" scale="0.5 0.5 0.5">
                 <a-entity id="furniture-wrapper" placement-lock>

@@ -1,8 +1,8 @@
 const FURNITURE_DATABASE = {
-    table: { width: 1.2, height: 0.8, depth: 0.8, color: '#FF5733' },
-    bed: { width: 1.4, height: 0.5, depth: 1.9, color: '#28B463' },
-    wardrobe: { width: 1.0, height: 2.0, depth: 0.6, color: '#F1C40F' },
-    chair: { width: 0.5, height: 1.0, depth: 0.5, color: '#3498DB' }
+    table: { renderType: 'primitive', width: 1.2, height: 0.8, depth: 0.8, color: '#FF5733' },
+    bed: { renderType: 'primitive', width: 1.4, height: 0.5, depth: 1.9, color: '#28B463' },
+    wardrobe: { renderType: 'model', modelId: '#model-cupboard', width: 1.0, height: 2.0, depth: 0.6 },
+    chair: { renderType: 'primitive', width: 0.5, height: 1.0, depth: 0.5, color: '#3498DB' }
 };
 
 AFRAME.registerComponent('camera-zoom-fix', {
@@ -110,7 +110,7 @@ AFRAME.registerComponent('mindspace-controller', {
             
             this.bindEvents();
             this.updateShape();
-            this.updateTransform(); 
+            this.updateTransform();
         } catch (error) {
             console.error('Controller init failed:', error.message);
         }
@@ -134,19 +134,35 @@ AFRAME.registerComponent('mindspace-controller', {
         });
     },
     updateShape: function () {
-        const type = this.ui.selector.value;
-        const data = FURNITURE_DATABASE[type];
-        
-        this.el.setAttribute('geometry', {
-            primitive: 'box',
-            width: data.width,
-            height: data.height,
-            depth: data.depth
-        });
-        
-        this.el.setAttribute('material', { color: data.color, opacity: 0.9 });
-        
-        this.el.object3D.position.y = data.height / 2;
+        try {
+            const type = this.ui.selector.value;
+            const data = FURNITURE_DATABASE[type];
+            
+            if (data.renderType === 'primitive') {
+                this.el.removeAttribute('gltf-model');
+                
+                this.el.setAttribute('geometry', {
+                    primitive: 'box',
+                    width: data.width,
+                    height: data.height,
+                    depth: data.depth
+                });
+                this.el.setAttribute('material', { color: data.color, opacity: 0.9 });
+                
+                this.el.object3D.position.y = data.height / 2;
+
+            } else if (data.renderType === 'model') {
+                this.el.removeAttribute('geometry');
+                this.el.removeAttribute('material');
+                
+                this.el.setAttribute('gltf-model', data.modelId);
+                
+
+                this.el.object3D.position.y = 0;
+            }
+        } catch (error) {
+            console.error('Failed to update shape:', error.message);
+        }
     },
     updateTransform: function () {
         try {
