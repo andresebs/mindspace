@@ -1,5 +1,5 @@
 .ui-container {
-    position: absolute;
+    position: fixed; 
     bottom: 0;
     left: 0;
     width: 100%;
@@ -11,7 +11,7 @@
     box-shadow: 0px -4px 10px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
-    z-index: 1000;
+    z-index: 999999; 
     box-sizing: border-box;
 }
 
