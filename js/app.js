@@ -110,6 +110,7 @@ AFRAME.registerComponent('mindspace-controller', {
             
             this.bindEvents();
             this.updateShape();
+            this.updateTransform(); 
         } catch (error) {
             console.error('Controller init failed:', error.message);
         }
@@ -148,21 +149,25 @@ AFRAME.registerComponent('mindspace-controller', {
         this.el.object3D.position.y = data.height / 2;
     },
     updateTransform: function () {
-        const sx = parseFloat(this.ui.scaleX.value);
-        const sy = parseFloat(this.ui.scaleY.value);
-        const sz = parseFloat(this.ui.scaleZ.value);
-        
-        const rx = parseFloat(this.ui.rotX.value);
-        const ry = parseFloat(this.ui.rotY.value);
-        const rz = parseFloat(this.ui.rotZ.value);
+        try {
+            const scaleValues = {
+                x: parseFloat(this.ui.scaleX.value),
+                y: parseFloat(this.ui.scaleY.value),
+                z: parseFloat(this.ui.scaleZ.value)
+            };
 
-        this.el.object3D.scale.set(sx, sy, sz);
-        
-        this.el.object3D.rotation.set(
-            THREE.Math.degToRad(rx),
-            THREE.Math.degToRad(ry),
-            THREE.Math.degToRad(rz)
-        );
+            const rotationValues = {
+                x: parseFloat(this.ui.rotX.value),
+                y: parseFloat(this.ui.rotY.value),
+                z: parseFloat(this.ui.rotZ.value)
+            };
+
+            this.el.setAttribute('scale', scaleValues);
+            this.el.setAttribute('rotation', rotationValues);
+            
+        } catch (error) {
+            console.error('Error applying transformations:', error.message);
+        }
     },
     updateText: function () {
         const type = this.ui.selector.value;
