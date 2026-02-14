@@ -17,7 +17,7 @@
 }
 
 .ui-container.expanded {
-    max-height: 450px;
+    max-height: 550px; 
 }
 
 .ui-header {
@@ -54,21 +54,23 @@
 }
 
 .action-btn.locked {
-    background-color: #dc3545; 
+    background-color: #dc3545;
 }
 
 .icon-btn {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
+    line-height: 1;
     cursor: pointer;
     padding: 0;
+    color: #333;
 }
 
 .ui-content {
     padding: 15px;
     overflow-y: auto;
-    max-height: 380px;
+    max-height: 450px;
 }
 
 .control-group {
@@ -88,7 +90,7 @@
 .slider-row {
     display: flex;
     align-items: center;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .slider-row span {

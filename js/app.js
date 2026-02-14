@@ -15,8 +15,8 @@ AFRAME.registerComponent('camera-zoom-fix', {
             setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 500);
             const video = document.getElementById('arjs-video');
             if (video) video.style.objectFit = 'cover';
-        } catch (e) {
-            console.error('Camera fix error:', e.message);
+        } catch (error) {
+            console.error('Camera fix error:', error.message);
         }
     },
     remove: function () {
@@ -36,12 +36,16 @@ AFRAME.registerComponent('ui-interaction-handler', {
         }
     },
     toggleMenu: function () {
-        if (this.uiContainer.classList.contains('collapsed')) {
-            this.uiContainer.classList.remove('collapsed');
-            this.uiContainer.classList.add('expanded');
-        } else {
-            this.uiContainer.classList.remove('expanded');
-            this.uiContainer.classList.add('collapsed');
+        try {
+            if (this.uiContainer.classList.contains('collapsed')) {
+                this.uiContainer.classList.remove('collapsed');
+                this.uiContainer.classList.add('expanded');
+            } else {
+                this.uiContainer.classList.remove('expanded');
+                this.uiContainer.classList.add('collapsed');
+            }
+        } catch (error) {
+            console.error('Menu toggle error:', error.message);
         }
     }
 });
@@ -56,7 +60,6 @@ AFRAME.registerComponent('placement-lock', {
         this.onToggle = this.toggleLock.bind(this);
         this.lockBtn.addEventListener('click', this.onToggle);
     },
-
     toggleLock: function () {
         try {
             if (this.isLocked) {
@@ -68,18 +71,15 @@ AFRAME.registerComponent('placement-lock', {
             console.error('Lock toggle error:', error.message);
         }
     },
-
     lock: function () {
         if (!this.el.object3D || !this.sceneEl.object3D) return;
 
- 
         this.sceneEl.object3D.attach(this.el.object3D);
 
         this.isLocked = true;
         this.lockBtn.innerText = 'Unlock';
         this.lockBtn.classList.add('locked');
     },
-
     unlock: function () {
         if (!this.el.object3D || !this.markerEl.object3D) return;
 
@@ -88,8 +88,6 @@ AFRAME.registerComponent('placement-lock', {
         this.el.object3D.position.set(0, 0, 0);
         this.el.object3D.rotation.set(0, 0, 0);
         
- 
-
         this.isLocked = false;
         this.lockBtn.innerText = 'Lock';
         this.lockBtn.classList.remove('locked');
@@ -104,31 +102,36 @@ AFRAME.registerComponent('mindspace-controller', {
                 scaleX: document.getElementById('scale-x'),
                 scaleY: document.getElementById('scale-y'),
                 scaleZ: document.getElementById('scale-z'),
+                rotX: document.getElementById('rot-x'),
                 rotY: document.getElementById('rot-y'),
+                rotZ: document.getElementById('rot-z'),
                 display: document.getElementById('measurement-display')
             };
             
             this.bindEvents();
             this.updateShape();
-        } catch (e) {
-            console.error('Controller init failed:', e.message);
+        } catch (error) {
+            console.error('Controller init failed:', error.message);
         }
     },
-
     bindEvents: function () {
         this.ui.selector.addEventListener('change', () => { 
             this.updateShape(); 
             this.updateText(); 
         });
         
-        [this.ui.scaleX, this.ui.scaleY, this.ui.scaleZ, this.ui.rotY].forEach(el => {
-            el.addEventListener('input', () => { 
+        const inputs = [
+            this.ui.scaleX, this.ui.scaleY, this.ui.scaleZ, 
+            this.ui.rotX, this.ui.rotY, this.ui.rotZ
+        ];
+
+        inputs.forEach(element => {
+            element.addEventListener('input', () => { 
                 this.updateTransform(); 
                 this.updateText(); 
             });
         });
     },
-
     updateShape: function () {
         const type = this.ui.selector.value;
         const data = FURNITURE_DATABASE[type];
@@ -144,17 +147,23 @@ AFRAME.registerComponent('mindspace-controller', {
         
         this.el.object3D.position.y = data.height / 2;
     },
-
     updateTransform: function () {
         const sx = parseFloat(this.ui.scaleX.value);
         const sy = parseFloat(this.ui.scaleY.value);
         const sz = parseFloat(this.ui.scaleZ.value);
+        
+        const rx = parseFloat(this.ui.rotX.value);
         const ry = parseFloat(this.ui.rotY.value);
+        const rz = parseFloat(this.ui.rotZ.value);
 
         this.el.object3D.scale.set(sx, sy, sz);
-        this.el.object3D.rotation.y = THREE.Math.degToRad(ry);
+        
+        this.el.object3D.rotation.set(
+            THREE.Math.degToRad(rx),
+            THREE.Math.degToRad(ry),
+            THREE.Math.degToRad(rz)
+        );
     },
-
     updateText: function () {
         const type = this.ui.selector.value;
         const data = FURNITURE_DATABASE[type];

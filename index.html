@@ -18,7 +18,7 @@
             <h1 class="app-title">Mindspace</h1>
             <div class="header-buttons">
                 <button id="lock-btn" class="action-btn">Lock</button>
-                <button id="toggle-menu-btn" class="icon-btn">⚙️</button>
+                <button id="toggle-menu-btn" class="icon-btn">☰</button>
             </div>
         </div>
         
@@ -41,8 +41,10 @@
             </div>
 
             <div class="control-group">
-                <label>Rotation</label>
+                <label>Rotation (Degrees)</label>
+                <div class="slider-row"><span>X:</span> <input type="range" id="rot-x" min="0" max="360" step="5" value="0"></div>
                 <div class="slider-row"><span>Y:</span> <input type="range" id="rot-y" min="0" max="360" step="5" value="0"></div>
+                <div class="slider-row"><span>Z:</span> <input type="range" id="rot-z" min="0" max="360" step="5" value="0"></div>
             </div>
 
             <div class="measurement-panel">
@@ -58,7 +60,7 @@
              ui-interaction-handler>
              
         <a-marker preset="hiro" id="main-marker">
-            <a-entity id="scaler-container" scale="0.1 0.1 0.1">
+            <a-entity id="scaler-container" scale="0.5 0.5 0.5">
                 <a-entity id="furniture-wrapper" placement-lock>
                     <a-entity id="furniture-model" mindspace-controller></a-entity>
                 </a-entity>
